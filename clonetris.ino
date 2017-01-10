@@ -3,6 +3,11 @@ boolean titresCurrentPiece[4][4];
 int titresCurrentPieceX;
 int titresCurrentPieceY;
 
+unsigned int points = 0;
+unsigned int level = 1;
+int clearedLines = 0;
+const int pointsPerLine[4] = {40, 100, 300, 1200};
+
 void titresMain() {
   randomSeed(analogRead(0));
   random(1000);
@@ -55,7 +60,7 @@ void titresMain() {
   unsigned long currentTime;
   
   unsigned long lastTimePieceFell;
-  int pieceFallInterval = 1000;
+  int pieceFallInterval = 1000; //initial, in milliseconds
   
   boolean turnedPiece[4][4];
   
@@ -75,6 +80,8 @@ void titresMain() {
     if (hasCollision(titresCurrentPiece, titresCurrentPieceX, titresCurrentPieceY)) {
       // game over!
       emptyFrame(titresBoard);
+      points = 0;
+      clearedLines = 0;
     }
     */
     
@@ -109,11 +116,12 @@ void titresMain() {
       }
       
       // check if it's time to move piece down
-      if (currentTime - lastTimePieceFell > pieceFallInterval) {
+      if (currentTime - lastTimePieceFell > pieceFallInterval / level) {
         // will the next position cause a collision?
         if (hasCollision(titresCurrentPiece, titresCurrentPieceX, titresCurrentPieceY + 1)) {
           //collision, so don't move piece
           mergePieceWithBoard();
+          removeFullLines();
           pieceHasLanded = true;
         } else {
           titresCurrentPieceY++; // move piece 1 down
@@ -133,6 +141,30 @@ void mergePieceWithBoard() {
         //put content at board coor
         titresBoard[titresCurrentPieceX + x][titresCurrentPieceY + y] = true;
       } // otherwise do nothing (might be something on the board there already)
+    }
+  }
+}
+
+void removeFullLines() {
+  int consecutiveFullLines = 0;
+  for (int line = frameHeight - 1; line >= 0; line--) {
+    boolean lineFull = true;
+    for (int column = 0; lineFull && column < frameWidth; column++) {
+      if (!titresBoard[column][line]) {
+        lineFull = false;
+      }
+    }
+    if (lineFull) {
+      clearedLines++;
+      consecutiveFullLines++;
+      // to-do: remove line!, e.g. removeLine(linenumber)
+    } else {
+      if (consecutiveFullLines > 0) {
+        level = (clearedLines / 10) + 1;
+        int additionalPoints = pointsPerLine[consecutiveFullLines-1] * (level);
+        points = points + additionalPoints;
+        consecutiveFullLines = 0;
+      }
     }
   }
 }

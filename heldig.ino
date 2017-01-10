@@ -12,18 +12,7 @@ int displayArrangement [2][1] = {
 };
 
 int getIdOfDisplayAt(int globalX, int globalY) {
-  int displayX = globalX/8;
-  int displayY = globalY/8;
-  /*Serial.print(globalX);
-  Serial.print(",g ");
-  Serial.println(globalY);
-  Serial.print(displayX);
-  Serial.print(", ");
-  Serial.println(displayY);
-  Serial.print("display id: ");
-  Serial.println(displayArrangement[displayY][displayX]);
-  Serial.println("-----");*/
-  return displayArrangement[displayY][displayX];
+  return displayArrangement[globalY/8][globalX/8];
 }
 
 const int frameWidth = 8;
@@ -32,7 +21,7 @@ boolean curFrame[8][16];
 boolean lastFrame[8][16];
 
 void setup() {
-  //Serial.begin(9600);
+  Serial.begin(9600);
   pinMode(leftButtonPin, OUTPUT);
   pinMode(upButtonPin, OUTPUT);
   pinMode(rightButtonPin, OUTPUT);
