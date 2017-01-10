@@ -38,7 +38,7 @@ void setup() {
 }
 
 void loop() {
-  titresMain();
+  clonetrisMain();
   /*
   for (int x = 0; x < frameWidth; x++) {
     for (int y = 0; y < frameHeight; y++) {

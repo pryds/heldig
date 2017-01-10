@@ -1,14 +1,14 @@
-boolean titresBoard[frameWidth][frameHeight];
-boolean titresCurrentPiece[4][4];
-int titresCurrentPieceX;
-int titresCurrentPieceY;
+boolean clonetrisBoard[frameWidth][frameHeight];
+boolean clonetrisCurrentPiece[4][4];
+int clonetrisCurrentPieceX;
+int clonetrisCurrentPieceY;
 
 unsigned int points = 0;
 unsigned int level = 1;
 int clearedLines = 0;
 const int pointsPerLine[4] = {40, 100, 300, 1200};
 
-void titresMain() {
+void clonetrisMain() {
   randomSeed(analogRead(0));
   random(1000);
   
@@ -71,15 +71,15 @@ void titresMain() {
 
   while(true) {
     //New piece; initialise currentPiece
-    copyPiece(piece[(int)random(7)], titresCurrentPiece);
-    titresCurrentPieceX = frameWidth/2-2;
-    titresCurrentPieceY = -2;
+    copyPiece(piece[(int)random(7)], clonetrisCurrentPiece);
+    clonetrisCurrentPieceX = frameWidth/2-2;
+    clonetrisCurrentPieceY = -2;
     
     /*
     //check if we have a collision already
-    if (hasCollision(titresCurrentPiece, titresCurrentPieceX, titresCurrentPieceY)) {
+    if (hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY)) {
       // game over!
-      emptyFrame(titresBoard);
+      emptyFrame(clonetrisBoard);
       points = 0;
       clearedLines = 0;
     }
@@ -95,19 +95,19 @@ void titresMain() {
       rightButtonState = digitalRead(rightButtonPin);
       if (!aButtonWasPressed) { // if a button was not pressed at last check
         if (leftButtonState == HIGH) {
-          if (!hasCollision(titresCurrentPiece, titresCurrentPieceX - 1, titresCurrentPieceY)) {
-            titresCurrentPieceX--;
+          if (!hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX - 1, clonetrisCurrentPieceY)) {
+            clonetrisCurrentPieceX--;
           }
           aButtonWasPressed = true;
         } else if (rightButtonState == HIGH) {
-          if (!hasCollision(titresCurrentPiece, titresCurrentPieceX + 1, titresCurrentPieceY)) {
-            titresCurrentPieceX++;
+          if (!hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX + 1, clonetrisCurrentPieceY)) {
+            clonetrisCurrentPieceX++;
           }
           aButtonWasPressed = true;
         } else if (upButtonState == HIGH) {
-          turnPieceToTheRight(titresCurrentPiece, turnedPiece);
-          if (!hasCollision(turnedPiece, titresCurrentPieceX, titresCurrentPieceY)) {
-            copyPiece(turnedPiece, titresCurrentPiece);
+          turnPieceToTheRight(clonetrisCurrentPiece, turnedPiece);
+          if (!hasCollision(turnedPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY)) {
+            copyPiece(turnedPiece, clonetrisCurrentPiece);
           }
           aButtonWasPressed = true;
         }
@@ -118,13 +118,13 @@ void titresMain() {
       // check if it's time to move piece down
       if (currentTime - lastTimePieceFell > pieceFallInterval / level) {
         // will the next position cause a collision?
-        if (hasCollision(titresCurrentPiece, titresCurrentPieceX, titresCurrentPieceY + 1)) {
+        if (hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY + 1)) {
           //collision, so don't move piece
           mergePieceWithBoard();
           removeFullLines();
           pieceHasLanded = true;
         } else {
-          titresCurrentPieceY++; // move piece 1 down
+          clonetrisCurrentPieceY++; // move piece 1 down
           lastTimePieceFell = currentTime;
         }
       }
@@ -137,9 +137,9 @@ void titresMain() {
 void mergePieceWithBoard() {
   for (int x = 0; x < 4; x++) {
     for (int y = 0; y < 4; y++) {
-      if (titresCurrentPiece[x][y]) { // if the piece occupies this local coor
+      if (clonetrisCurrentPiece[x][y]) { // if the piece occupies this local coor
         //put content at board coor
-        titresBoard[titresCurrentPieceX + x][titresCurrentPieceY + y] = true;
+        clonetrisBoard[clonetrisCurrentPieceX + x][clonetrisCurrentPieceY + y] = true;
       } // otherwise do nothing (might be something on the board there already)
     }
   }
@@ -150,7 +150,7 @@ void removeFullLines() {
   for (int line = frameHeight - 1; line >= 0; line--) {
     boolean lineFull = true;
     for (int column = 0; lineFull && column < frameWidth; column++) {
-      if (!titresBoard[column][line]) {
+      if (!clonetrisBoard[column][line]) {
         lineFull = false;
       }
     }
@@ -185,7 +185,7 @@ boolean hasCollision(boolean piece[4][4], int pieceNewX, int pieceNewY) {
         // only check for collision if this coor is inside board (not above)
         if (pieceNewY >= 0) {
           // check if this coor of piece collides with previous pieces on board
-          if (titresBoard[pieceNewX + x][pieceNewY + y]) {
+          if (clonetrisBoard[pieceNewX + x][pieceNewY + y]) {
             return true; // collision with something on board!
           }
         }
@@ -198,16 +198,16 @@ boolean hasCollision(boolean piece[4][4], int pieceNewX, int pieceNewY) {
 void drawBoardOnCurFrame() {
   for (int x = 0; x < frameWidth; x++) {
     for (int y = 0; y < frameHeight; y++) {
-      if (titresBoard[x][y]) { //something is on the board at this coordinate
+      if (clonetrisBoard[x][y]) { //something is on the board at this coordinate
         curFrame[x][y] = true;
-      } else if ((x >= titresCurrentPieceX && x < titresCurrentPieceX+4)
+      } else if ((x >= clonetrisCurrentPieceX && x < clonetrisCurrentPieceX+4)
                    &&
-                 (y >= titresCurrentPieceY && y < titresCurrentPieceY+4)) {
-        curFrame[x][y] = titresCurrentPiece[x-titresCurrentPieceX][y-titresCurrentPieceY];
+                 (y >= clonetrisCurrentPieceY && y < clonetrisCurrentPieceY+4)) {
+        curFrame[x][y] = clonetrisCurrentPiece[x-clonetrisCurrentPieceX][y-clonetrisCurrentPieceY];
       } else {
         curFrame[x][y] = false;
       }
-      //curFrame[x][y] = titresBoard[x][y] && titresCurrentPiece[][];
+      //curFrame[x][y] = clonetrisBoard[x][y] && clonetrisCurrentPiece[][];
     }
   }
 }
