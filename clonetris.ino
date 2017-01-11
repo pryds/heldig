@@ -85,6 +85,7 @@ void clonetrisMain() {
     }
     */
     
+    boolean boardHasChanged = false;
     boolean pieceHasLanded = false;
     while (!pieceHasLanded) {
       currentTime = millis();
@@ -97,17 +98,20 @@ void clonetrisMain() {
         if (leftButtonState == HIGH) {
           if (!hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX - 1, clonetrisCurrentPieceY)) {
             clonetrisCurrentPieceX--;
+            boardHasChanged = true;
           }
           aButtonWasPressed = true;
         } else if (rightButtonState == HIGH) {
           if (!hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX + 1, clonetrisCurrentPieceY)) {
             clonetrisCurrentPieceX++;
+            boardHasChanged = true;
           }
           aButtonWasPressed = true;
         } else if (upButtonState == HIGH) {
           turnPieceToTheRight(clonetrisCurrentPiece, turnedPiece);
           if (!hasCollision(turnedPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY)) {
             copyPiece(turnedPiece, clonetrisCurrentPiece);
+            boardHasChanged = true;
           }
           aButtonWasPressed = true;
         }
@@ -121,20 +125,28 @@ void clonetrisMain() {
         if (hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY + 1)) {
           //collision, so don't move piece
           mergePieceWithBoard();
-          removeFullLines();
+          boolean removedLines =
+            removeFullLines();
+          if (removedLines)
+            boardHasChanged = true;
           pieceHasLanded = true;
         } else {
           clonetrisCurrentPieceY++; // move piece 1 down
           lastTimePieceFell = currentTime;
+          boardHasChanged = true;
         }
       }
-      drawBoardOnCurFrame();
-      drawFrameOnDisplay();
+      if (boardHasChanged) {
+        drawBoardOnCurFrame();
+        drawFrameOnDisplay();
+        boardHasChanged = false;
+      }
     }
   }
 }
 
 void mergePieceWithBoard() {
+  // Copy falling piece to board
   for (int x = 0; x < 4; x++) {
     for (int y = 0; y < 4; y++) {
       if (clonetrisCurrentPiece[x][y]) { // if the piece occupies this local coor
@@ -145,7 +157,9 @@ void mergePieceWithBoard() {
   }
 }
 
-void removeFullLines() {
+boolean removeFullLines() {
+  // Remove any full lines, and return true if at least one line was removed, false otherwise
+  boolean oneOrMoreLinesWereRemoved = false;
   int consecutiveFullLines = 0;
   for (int line = frameHeight - 1; line >= 0; line--) {
     boolean lineFull = true;
@@ -155,9 +169,15 @@ void removeFullLines() {
       }
     }
     if (lineFull) {
-      clearedLines++;
+      clearedLines++; // total number of cleared lines in this game +1
       consecutiveFullLines++;
-      // to-do: remove line!, e.g. removeLine(linenumber)
+      removeLine(line);
+      oneOrMoreLinesWereRemoved = true;
+      line++; //since we just moved the contents of the line above to this one, make sure this line is checked again at next loop!
+      // Create small "animation" by redrawing the board for each removed line:
+      drawBoardOnCurFrame();
+      drawFrameOnDisplay();
+      delay(100);
     } else {
       if (consecutiveFullLines > 0) {
         level = (clearedLines / 10) + 1;
@@ -167,9 +187,20 @@ void removeFullLines() {
       }
     }
   }
+  return oneOrMoreLinesWereRemoved;
+}
+
+void removeLine(int removeLine) {
+  // Remove a particular line and move down all lines above it
+  for (int line = removeLine; line >= 0; line--) {
+    for (int column = 0; column < frameWidth; column++) {
+      clonetrisBoard[column][line] = (line==0) ? 0 : clonetrisBoard[column][line-1];
+    }
+  }
 }
 
 boolean hasCollision(boolean piece[4][4], int pieceNewX, int pieceNewY) {
+  // Check whether given piece at given coordinates would cause a collision with board contents or walls
   for (int x = 0; x < 4; x++) {
     for (int y = 0; y < 4; y++) {
       //only a collision risk if the piece occupies this local coordinate
@@ -196,6 +227,7 @@ boolean hasCollision(boolean piece[4][4], int pieceNewX, int pieceNewY) {
 }
 
 void drawBoardOnCurFrame() {
+  // Copy contents of board plus falling piece to frame, ready for submission to display
   for (int x = 0; x < frameWidth; x++) {
     for (int y = 0; y < frameHeight; y++) {
       if (clonetrisBoard[x][y]) { //something is on the board at this coordinate
@@ -213,6 +245,7 @@ void drawBoardOnCurFrame() {
 }
 
 void copyPiece(boolean fromPiece[4][4], boolean toPiece[4][4]) {
+  // Make an exact copy of one piece to another
   for (int x = 0; x < 4; x++) {
     for (int y = 0; y < 4; y++) {
       toPiece[x][y] = fromPiece[x][y];
@@ -221,6 +254,7 @@ void copyPiece(boolean fromPiece[4][4], boolean toPiece[4][4]) {
 }
 
 void turnPieceToTheRight(boolean origPiece[4][4], boolean turnedPiece[4][4]) {
+  // Make a copy of a piece that is turned 90° clock-wise
   for (int x = 0; x < 4; x++) {
     for (int y = 0; y < 4; y++) {
       turnedPiece[3-y][x] = origPiece[x][y];

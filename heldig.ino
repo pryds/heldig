@@ -12,13 +12,13 @@ int displayArrangement [2][1] = {
 };
 
 int getIdOfDisplayAt(int globalX, int globalY) {
-  return displayArrangement[globalY/8][globalX/8];
+  return displayArrangement[globalY/8][globalX/8]; // 8 as in 8 LEDs per row/column on each display
 }
 
-const int frameWidth = 8;
-const int frameHeight = 16;
-boolean curFrame[8][16];
-boolean lastFrame[8][16];
+#define frameWidth 8
+#define frameHeight 16
+boolean curFrame[frameWidth][frameHeight];
+boolean lastFrame[frameWidth][frameHeight];
 
 void setup() {
   Serial.begin(9600);
