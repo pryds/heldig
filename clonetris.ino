@@ -8,6 +8,9 @@ unsigned int level = 1;
 int clearedLines = 0;
 const int pointsPerLine[4] = {40, 100, 300, 1200};
 
+const int initialPieceX = frameWidth/2-2;
+const int initialPieceY = -1;
+
 void clonetrisMain() {
   randomSeed(analogRead(0));
   random(1000);
@@ -68,26 +71,22 @@ void clonetrisMain() {
   int leftButtonState = 0;
   int upButtonState = 0;
   int rightButtonState = 0;
-
-  while(true) {
+  
+  emptyFrame(clonetrisBoard);
+  points = 0;
+  level = 1;
+  boolean gameOver = false;
+  
+  while(!gameOver) {
     //New piece; initialise currentPiece
     copyPiece(piece[(int)random(7)], clonetrisCurrentPiece);
-    clonetrisCurrentPieceX = frameWidth/2-2;
-    clonetrisCurrentPieceY = -2;
+    clonetrisCurrentPieceX = initialPieceX;
+    clonetrisCurrentPieceY = initialPieceY;
     
-    /*
-    //check if we have a collision already
-    if (hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY)) {
-      // game over!
-      emptyFrame(clonetrisBoard);
-      points = 0;
-      clearedLines = 0;
-    }
-    */
-    
-    boolean boardHasChanged = false;
+    boolean boardHasChanged = true;
     boolean pieceHasLanded = false;
-    while (!pieceHasLanded) {
+    
+    while (!pieceHasLanded && !gameOver) {
       currentTime = millis();
       
       // has a button been pressed
@@ -125,10 +124,14 @@ void clonetrisMain() {
         if (hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY + 1)) {
           //collision, so don't move piece
           mergePieceWithBoard();
-          boolean removedLines =
-            removeFullLines();
-          if (removedLines)
-            boardHasChanged = true;
+          if (clonetrisCurrentPieceY == initialPieceY) {
+            gameOver = true;
+          } else {
+            boolean removedLines =
+              removeFullLines();
+            if (removedLines)
+              boardHasChanged = true;
+          }
           pieceHasLanded = true;
         } else {
           clonetrisCurrentPieceY++; // move piece 1 down
@@ -143,6 +146,7 @@ void clonetrisMain() {
       }
     }
   }
+  delay(2000);
 }
 
 void mergePieceWithBoard() {
