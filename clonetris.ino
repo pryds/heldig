@@ -1,15 +1,17 @@
-boolean clonetrisBoard[frameWidth][frameHeight];
+//Game variables
+boolean clonetrisBoard[FRAME_WIDTH][FRAME_HEIGHT];
 boolean clonetrisCurrentPiece[4][4];
 int clonetrisCurrentPieceX;
 int clonetrisCurrentPieceY;
 
-unsigned int points = 0;
-unsigned int level = 1;
-int clearedLines = 0;
-const int pointsPerLine[4] = {40, 100, 300, 1200};
+unsigned int points;
+unsigned int level;
+int clearedLines;
 
-const int initialPieceX = frameWidth/2-2;
-const int initialPieceY = -1;
+//Game constants
+const int POINTS_PER_LINE[4] = {40, 100, 300, 1200}; //per 1 line, 2 lines, 3 lines, 4 lines
+const int INITIAL_PIECE_X = (FRAME_WIDTH / 2) - 2;
+const int INITIAL_PIECE_Y = -1;
 
 void clonetrisMain() {
   randomSeed(analogRead(0));
@@ -60,28 +62,31 @@ void clonetrisMain() {
     }
   };
   
+  //Variables for timing falling pieces
   unsigned long currentTime;
-  
   unsigned long lastTimePieceFell;
-  int pieceFallInterval = 1000; //initial, in milliseconds
+  const int PIECE_FALL_INTERVAL = 1000; //initial, in milliseconds
   
   boolean turnedPiece[4][4];
   
+  //Variables for button handling
   boolean aButtonWasPressed = false;
   int leftButtonState = 0;
   int upButtonState = 0;
   int rightButtonState = 0;
   
+  //(Re)set game variables for new game
   emptyFrame(clonetrisBoard);
   points = 0;
   level = 1;
+  clearedLines = 0;
   boolean gameOver = false;
   
   while(!gameOver) {
     //New piece; initialise currentPiece
     copyPiece(piece[(int)random(7)], clonetrisCurrentPiece);
-    clonetrisCurrentPieceX = initialPieceX;
-    clonetrisCurrentPieceY = initialPieceY;
+    clonetrisCurrentPieceX = INITIAL_PIECE_X;
+    clonetrisCurrentPieceY = INITIAL_PIECE_Y;
     
     boolean boardHasChanged = true;
     boolean pieceHasLanded = false;
@@ -90,9 +95,9 @@ void clonetrisMain() {
       currentTime = millis();
       
       // has a button been pressed
-      leftButtonState = digitalRead(leftButtonPin);
-      upButtonState = digitalRead(upButtonPin);
-      rightButtonState = digitalRead(rightButtonPin);
+      leftButtonState = digitalRead(LEFT_BUTTON_PIN);
+      upButtonState = digitalRead(UP_BUTTON_PIN);
+      rightButtonState = digitalRead(RIGHT_BUTTON_PIN);
       if (!aButtonWasPressed) { // if a button was not pressed at last check
         if (leftButtonState == HIGH) {
           if (!hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX - 1, clonetrisCurrentPieceY)) {
@@ -119,12 +124,12 @@ void clonetrisMain() {
       }
       
       // check if it's time to move piece down
-      if (currentTime - lastTimePieceFell > pieceFallInterval / level) {
+      if (currentTime - lastTimePieceFell > PIECE_FALL_INTERVAL / level) {
         // will the next position cause a collision?
         if (hasCollision(clonetrisCurrentPiece, clonetrisCurrentPieceX, clonetrisCurrentPieceY + 1)) {
           //collision, so don't move piece
           mergePieceWithBoard();
-          if (clonetrisCurrentPieceY == initialPieceY) {
+          if (clonetrisCurrentPieceY == INITIAL_PIECE_Y) {
             gameOver = true;
           } else {
             boolean removedLines =
@@ -165,9 +170,9 @@ boolean removeFullLines() {
   // Remove any full lines, and return true if at least one line was removed, false otherwise
   boolean oneOrMoreLinesWereRemoved = false;
   int consecutiveFullLines = 0;
-  for (int line = frameHeight - 1; line >= 0; line--) {
+  for (int line = FRAME_HEIGHT - 1; line >= 0; line--) {
     boolean lineFull = true;
-    for (int column = 0; lineFull && column < frameWidth; column++) {
+    for (int column = 0; lineFull && column < FRAME_WIDTH; column++) {
       if (!clonetrisBoard[column][line]) {
         lineFull = false;
       }
@@ -185,7 +190,7 @@ boolean removeFullLines() {
     } else {
       if (consecutiveFullLines > 0) {
         level = (clearedLines / 10) + 1;
-        int additionalPoints = pointsPerLine[consecutiveFullLines-1] * (level);
+        int additionalPoints = POINTS_PER_LINE[consecutiveFullLines-1] * (level);
         points = points + additionalPoints;
         consecutiveFullLines = 0;
       }
@@ -197,7 +202,7 @@ boolean removeFullLines() {
 void removeLine(int removeLine) {
   // Remove a particular line and move down all lines above it
   for (int line = removeLine; line >= 0; line--) {
-    for (int column = 0; column < frameWidth; column++) {
+    for (int column = 0; column < FRAME_WIDTH; column++) {
       clonetrisBoard[column][line] = (line==0) ? 0 : clonetrisBoard[column][line-1];
     }
   }
@@ -210,11 +215,11 @@ boolean hasCollision(boolean piece[4][4], int pieceNewX, int pieceNewY) {
       //only a collision risk if the piece occupies this local coordinate
       if (piece[x][y]) {
         // check if this coor of piece is outside of board on X axis
-        if (pieceNewX + x < 0 || pieceNewX + x >= frameWidth) {
+        if (pieceNewX + x < 0 || pieceNewX + x >= FRAME_WIDTH) {
           return true;
         }
         // check if this coor of piece is below board
-        if (pieceNewY + y >= frameHeight) { //don't check top
+        if (pieceNewY + y >= FRAME_HEIGHT) { //don't check top
           return true; //collision with bottom!
         }
         // only check for collision if this coor is inside board (not above)
@@ -232,8 +237,8 @@ boolean hasCollision(boolean piece[4][4], int pieceNewX, int pieceNewY) {
 
 void drawBoardOnCurFrame() {
   // Copy contents of board plus falling piece to frame, ready for submission to display
-  for (int x = 0; x < frameWidth; x++) {
-    for (int y = 0; y < frameHeight; y++) {
+  for (int x = 0; x < FRAME_WIDTH; x++) {
+    for (int y = 0; y < FRAME_HEIGHT; y++) {
       if (clonetrisBoard[x][y]) { //something is on the board at this coordinate
         curFrame[x][y] = true;
       } else if ((x >= clonetrisCurrentPieceX && x < clonetrisCurrentPieceX+4)
@@ -243,7 +248,6 @@ void drawBoardOnCurFrame() {
       } else {
         curFrame[x][y] = false;
       }
-      //curFrame[x][y] = clonetrisBoard[x][y] && clonetrisCurrentPiece[][];
     }
   }
 }

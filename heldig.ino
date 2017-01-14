@@ -2,9 +2,9 @@
 
 LedControl lc1 = LedControl(6, 5, 4, 2); //(din, clk, cs, numBoards)
 
-const int leftButtonPin = 11;
-const int upButtonPin = 12;
-const int rightButtonPin = 13;
+const int LEFT_BUTTON_PIN = 11;
+const int UP_BUTTON_PIN = 12;
+const int RIGHT_BUTTON_PIN = 13;
 
 int displayArrangement [2][1] = {
   {1}, //display Id/address
@@ -15,16 +15,16 @@ int getIdOfDisplayAt(int globalX, int globalY) {
   return displayArrangement[globalY/8][globalX/8]; // 8 as in 8 LEDs per row/column on each display
 }
 
-#define frameWidth 8
-#define frameHeight 16
-boolean curFrame[frameWidth][frameHeight];
-boolean lastFrame[frameWidth][frameHeight];
+#define FRAME_WIDTH 8
+#define FRAME_HEIGHT 16
+boolean curFrame[FRAME_WIDTH][FRAME_HEIGHT];
+boolean lastFrame[FRAME_WIDTH][FRAME_HEIGHT];
 
 void setup() {
-  Serial.begin(9600);
-  pinMode(leftButtonPin, OUTPUT);
-  pinMode(upButtonPin, OUTPUT);
-  pinMode(rightButtonPin, OUTPUT);
+  //Serial.begin(9600); //for testing
+  pinMode(LEFT_BUTTON_PIN, OUTPUT);
+  pinMode(UP_BUTTON_PIN, OUTPUT);
+  pinMode(RIGHT_BUTTON_PIN, OUTPUT);
   
   lc1.clearDisplay(0); //clear all leds
   lc1.clearDisplay(1); //clear all leds
@@ -56,8 +56,8 @@ void loop() {
 
 void drawFrameOnDisplay() {
   //lc1.shutdown(0, true);
-  for (int x = 0; x < frameWidth; x++) {
-    for (int y = 0; y < frameHeight; y++) {
+  for (int x = 0; x < FRAME_WIDTH; x++) {
+    for (int y = 0; y < FRAME_HEIGHT; y++) {
       if (curFrame[x][y] != lastFrame[x][y]) {
         lc1.setLed(getIdOfDisplayAt(x, y), y%8, x%8, curFrame[x][y]);
       }
@@ -68,16 +68,16 @@ void drawFrameOnDisplay() {
 }
 
 void copyFrameToFrame(boolean fromFrame[8][16], boolean toFrame[8][16]) {
-  for (int x = 0; x < frameWidth; x++) {
-    for (int y = 0; y < frameHeight; y++) {
+  for (int x = 0; x < FRAME_WIDTH; x++) {
+    for (int y = 0; y < FRAME_HEIGHT; y++) {
       toFrame[x][y] = fromFrame[x][y];
     }
   }
 }
 
 void emptyFrame(boolean frame[8][16]) {
-  for (int w = 0; w < frameWidth; w++) {
-    for (int h = 0; h < frameHeight; h++) {
+  for (int w = 0; w < FRAME_WIDTH; w++) {
+    for (int h = 0; h < FRAME_HEIGHT; h++) {
       frame[w][h] = false;
     }
   }
